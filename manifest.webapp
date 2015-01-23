@@ -9,13 +9,19 @@
     "512": "/img/icon.png"
   },
   "developer": {
-    "name": "Andre Natal",
-    "url": "http://your-homepage-here.org"
+    "name": "Aus Lacroix and Andr&eacute; Natal",
+    "url": "https://github.com/nullaus/fxos-voice-commands"
+  },
+  "activities": {
+    "voice-command-request": {
+      "href": "index.html",
+      "disposition": "inline"
+    }
   },
   "default_locale": "en",
    "permissions": {
       "contacts": {
-        "description" : "Reading out contacts",
+        "description" : "Read Contacts for Calls and SMS",
         "access": "readcreate"
       },
       "telephony": {

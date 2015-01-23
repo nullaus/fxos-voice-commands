@@ -1,4 +1,39 @@
+// XXXAus: This entire file will get refactored so that it's better structured.
+//         We would like to make it as easy as possible to add handling of
+//         new commands.
 
+/**
+ * The Voice Commands Interface
+ */
+var VoiceCommandsInterface = {
+  // Elements we care about.
+  speakButton: document.getElementById('speak'),
+  audioElement: document.getElementById('say'),
+
+  // State.
+  interpretingCommand: false,
+
+  /**
+   * Initialize
+   */
+  init: function() {
+    this.registerActivityHandler();
+  },
+
+  /**
+   * Register our Activity Handler.
+   */
+  registerActivityHandler: function() {
+    // Super basic handling for now.
+    navigator.mozSetMessageHandler('activity', (function(activityRequest) {
+      this.speakButton.onclick();
+    }.bind(this)));
+  },
+
+  say: function(aSentence) {
+
+  },
+};
 
 var speakbtn = document.querySelector("#speak");
 var sayaudio = document.querySelector("#say");
@@ -220,3 +255,6 @@ function changelabel(str){
   document.querySelector("#lblstatus").innerHTML = str;
 }
 
+navigator.mozSetMessageHandler('activity', (function(activityRequest) {
+  this.speakButton.onclick();
+}.bind(this)));
