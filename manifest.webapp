@@ -1,12 +1,11 @@
 {
   "name": "Vaani",
-  "description": "Firefox os Voice Dialer",
+  "description": "Firefox OS Speech Recognition Assistant",
+  "version": "0.1a",
   "type" : "certified",
   "launch_path": "/index.html",
   "icons": {
-    "128": "/img/icon.png",
-    "120": "/img/icon.png",
-    "512": "/img/icon.png"
+    "128": "/style/icons/icon.png"
   },
   "developer": {
     "name": "Aus Lacroix and Andr&eacute; Natal",
@@ -19,17 +18,19 @@
     }
   },
   "default_locale": "en",
-   "permissions": {
-      "contacts": {
-        "description" : "Read Contacts for Calls and SMS",
-        "access": "readcreate"
-      },
-      "telephony": {
-        "description" : "Make calls"
-      },
-      "audio-capture" : {
-        "description" : "Audio capture"
-      }
-
+  "permissions": {
+    "contacts": {
+      "description" : "Read Contacts for Calls and SMS",
+      "access": "readcreate"
+    },
+    "telephony": {
+      "description" : "Make calls"
+    },
+    "webapps-manage" : {
+      "description": "Read list of installed apps to enable launching them"
+    },
+    "audio-capture" : {
+      "description" : "Audio capture for speech recognition"
     }
+  }
 }
