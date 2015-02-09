@@ -1,5 +1,5 @@
 .ring {
-  width: 300px;
+  width: 96%;
   height: 300px;
   border-radius: 50%;
   position: absolute;
@@ -31,7 +31,7 @@
 #r4 { -webkit-animation-delay: -3s;animation-delay: -3s;}
 
 .ringr {
-  width: 300px;
+  width: 96%;
   height: 300px;
   border-radius: 50%;
   position: absolute;
@@ -58,8 +58,7 @@
   position: absolute;
   background-color: blue;
   top:161px;
-  left:206px;
-  margin-left: -50px;
+  left: 49%;
 }
 
 @keyframes anir {
@@ -80,8 +79,28 @@
 }
 
 #status-icon {
-  background: url('../images/ff.png') center no-repeat;
   height: 10rem;
+}
+#status-icon.battery {
+  background: url('../images/battery.png') center no-repeat;
+}
+#status-icon.fxos-logo {
+  background: url('../images/ff.png') center no-repeat;
+}
+#status-icon.messages {
+  background: url('../images/mail.png') center no-repeat;
+}
+#status-icon.microphone {
+  background: url('../images/mic.png') center no-repeat;
+}
+#status-icon.telephone {
+  background: url('../images/tel.png') center no-repeat;
+}
+#status-icon.text {
+  background: url('../images/sms.png') center no-repeat;
+}
+#status-icon.weather {
+  background: url('../images/sun.png') center no-repeat;
 }
 
 #status-text {

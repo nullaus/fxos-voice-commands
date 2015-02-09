@@ -42,7 +42,8 @@ var VoiceCommandsInterface = {
     this.speakButton = document.getElementById('microphone-button');
     this.speakButton.onclick = (function() {
       // XXXAus: Should load this via l10n.
-      this.say('How may I help you?', true);
+      this.updateStatusIcon('fxosLogo');
+      this.say('I\'m listening.', true);
     }).bind(this);
 
     this.statusText = document.getElementById('status-text');
@@ -82,7 +83,9 @@ var VoiceCommandsInterface = {
                   'text me | ' +
                   'send me a text to remind me to get milk | ' +
                   'whats my battery level | ' +
-                  'open my calendar ;';
+                  'open my calendar | ' +
+                  'open my email | ' +
+                  'open my messages ;';
 
     this.speechGrammarList.addFromString(grammar, 1);
   },
@@ -107,6 +110,7 @@ var VoiceCommandsInterface = {
    */
   updateStatusText: function(aText) {
     this.statusText.style.display = 'block';
+    this.statusText.style.visibility = 'visible';
     this.statusText.innerHTML = aText;
   },
 
@@ -117,25 +121,21 @@ var VoiceCommandsInterface = {
    * @memberOf VoiceCommandsInterface
    */
   updateStatusIcon: function(aIconType) {
-    var path = '../images/';
-    var icons = {
-      battery: 'battery.png',
-      fxosLogo: 'ff.png',
-      messages: 'mail.png',
-      microphone: 'mic.png',
-      telephone: 'tel.png',
-      text: 'sms.png',
-      weather: 'sun.png'
-    };
+    debug('VoiceCommandsInterface::updateStatusIcon(aIconType = ' +
+          aIconType + ')');
 
-    debug('updateStatusIcon to ' + aIconType);
+    var validClasses = ['battery', 'fxos-logo', 'messages',
+                        'microphone', 'telephone', 'text', 'weather'];
+    var classIndex = validClasses.indexOf(aIconType);
 
-    if (icons[aIconType]) {
-      this.statusIcon.background =
-        'url(' + path + icons[aIconType] + ') center no-repeat';
+    if (classIndex > -1) {
+      debug('Setting status icon to ' + validClasses[classIndex]);
+      this.statusIcon.style.visibility = 'hidden';
+      this.statusIcon.className = validClasses[classIndex];
+      this.statusIcon.style.visibility = 'visible';
     }
     else {
-      this.statusIcon.background = 'transparent';
+      this.statusIcon.style.visibility = 'hidden';
     }
   },
 
@@ -144,6 +144,10 @@ var VoiceCommandsInterface = {
    */
   setListeningAnimationState: function(aShow) {
     var show = aShow || false;
+    // XXXAus: not too fond of this hiding the status icon and text but
+    //         that's just the easiest right now.
+    this.statusIcon.style.visibility = aShow ? 'hidden' : 'visible';
+    this.statusText.style.visibility = aShow ? 'hidden' : 'visible';
     this.listeningAnimation.style.display = aShow ? 'block' : 'none';
   },
 
@@ -197,10 +201,8 @@ var VoiceCommandsInterface = {
       return;
     }
 
-    // XXXAus: Yuck yuck yuck. We'll have an abstracted UI object that does
-    //         all this soon.
     this.updateStatusText('I\'m listening');
-    this.updateStatusIcon('listening');
+    this.setListeningAnimationState(true);
 
     debug('VoiceCommandsInterface:: listen -- Listening for a command');
 
@@ -212,8 +214,8 @@ var VoiceCommandsInterface = {
       var transcript = '';
       var partialTranscript = '';
 
-      // XXXAus: Score is always 100 currently.
-      var score = '';
+      // XXXAus: Confidence is always 100 currently.
+      var confidence = '';
 
       // Assemble the transcript from the array of results
       for (var i = event.resultIndex; i < event.results.length; ++i) {
@@ -226,27 +228,33 @@ var VoiceCommandsInterface = {
                 '" to complete transcript');
           isFinal = true;
           transcript += event.results[i][0].transcript;
-          score = event.results[i][0].confidence;
+          confidence = event.results[i][0].confidence;
         }
         else {
           debug('adding "' + event.results[i][0].transcript +
                 '" to partial transcript');
           partialTranscript += event.results[i][0].transcript;
-          score = event.results[i][0].confidence;
+          confidence = event.results[i][0].confidence;
         }
       }
 
       debug('finalized transcript is -- "' + transcript + '"');
       debug('partial transcript is -- "' + partialTranscript + '"');
 
-
       // XXXAus: We'll fall back to the partial transcript if there isn't a
       //         final one for now. It actually looks like we never get a
       //         final transcript currently.
-      this.updateStatusText(transcript || partialTranscript);
+      var usableTranscript = transcript || partialTranscript;
 
-      // If we have a final transcript we will parse it for a valid action.
-      if (transcript.length || partialTranscript.length) {
+      // XXXAus: Ugh. This is really crappy error handling.
+      if (usableTranscript == "ERROR") {
+        this.listeningAnimation
+        this.say('I\'m sorry, I didn\'t understand. Please try again.', true);
+        return;
+      }
+      else if (usableTranscript.length) {
+        // If we have a usable transcript we will parse it for a valid action.
+        this.updateStatusText(usableTranscript);
         CommandInterpreter.doThyBidding(transcript || partialTranscript);
       }
     }.bind(this));
@@ -263,6 +271,13 @@ var CommandInterpreter = {
    */
   doThyBidding: function(aTranscript) {
     debug('CommandInterpreter::doThyBidding(aTranscript = ' + aTranscript +')');
+
+    //
+    // XXXAus: This is super jank. There should be a central keeper of all
+    //         possible commands. These should all get a chance to interpret
+    //         the command until the one with the highest confidence to fulfill
+    //         is found. Then we simply "run" this command.
+    //
 
     //
     // XXXAus: This needs to not look like this. At all. It should also return
@@ -295,6 +310,7 @@ var CommandInterpreter = {
           SMS.send(contact.tel[0].value);
         },
         function() {
+          VoiceCommandsInterface.say('I couldn\'t find that contact.');
         });
 
       return;
@@ -320,20 +336,31 @@ var CommandInterpreter = {
 
       ContactsSearch.findContact('Aus').then(
         function(contact) {
-          debug(uneval(contact));
           Dialer.dial(contact.tel[0].value);
         },
         function(error) {
-          console.error(error);
+          VoiceCommandsInterface.say('I couldn\'t find that contact.');
         });
-
-      VoiceCommandsInterface.updateStatusIcon('telephone');
 
       return;
     }
 
     if (aTranscript.indexOf('open') > -1) {
-      AppLauncher.launch('calendar');
+      //
+      // XXXAus: The right way to do this would be to create grammar entries
+      //         for opening each current installed application. We don't do
+      //         this right now but it would be fairly easy to do this.
+      //
+      if (aTranscript.indexOf('calendar') > -1) {
+        AppLauncher.launch('calendar');
+      }
+      else if (aTranscript.indexOf('email') > -1) {
+        AppLauncher.launch('e-mail');
+      }
+      else if (aTranscript.indexOf('messages')) {
+        AppLauncher.launch('messages');
+      }
+
       return;
     }
 
