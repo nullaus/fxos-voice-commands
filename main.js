@@ -42,7 +42,7 @@ var VoiceCommandsInterface = {
     this.speakButton = document.getElementById('microphone-button');
     this.speakButton.onclick = (function() {
       // XXXAus: Should load this via l10n.
-      this.updateStatusIcon('fxosLogo');
+      this.updateStatusIcon('fxos-logo');
       this.say('I\'m listening.', true);
     }).bind(this);
 
@@ -76,12 +76,10 @@ var VoiceCommandsInterface = {
     //         information related to the action.
     var grammar = '#JSGF v1.0; grammar fxosVoiceCommands; ' +
                   'public <simple> = ' +
-                  'testing | ' +
                   'call me | ' +
                   'dial me | ' +
                   'check my messages | ' +
                   'text me | ' +
-                  'send me a text to remind me to get milk | ' +
                   'whats my battery level | ' +
                   'open my calendar | ' +
                   'open my email | ' +
@@ -179,6 +177,7 @@ var VoiceCommandsInterface = {
       this._interpretingCommand = true;
     }
 
+    // Wait an extra 100ms for the audio output to stabilize off.
     setTimeout(function() {
       var e = document.createElement('audio');
       e.src = url;
@@ -187,7 +186,7 @@ var VoiceCommandsInterface = {
         e.addEventListener('ended', this.listen.bind(this));
       }
     }.bind(this),
-    0);
+    100);
   },
 
   /**
@@ -215,7 +214,7 @@ var VoiceCommandsInterface = {
       var partialTranscript = '';
 
       // XXXAus: Confidence is always 100 currently.
-      var confidence = '';
+      var confidence = 0;
 
       // Assemble the transcript from the array of results
       for (var i = event.resultIndex; i < event.results.length; ++i) {
@@ -228,12 +227,19 @@ var VoiceCommandsInterface = {
                 '" to complete transcript');
           isFinal = true;
           transcript += event.results[i][0].transcript;
+          // XXXAus: This is useless right now but the idea is we wouldn't
+          //         always complete the action or command requested if the
+          //         confidence level is too low.
           confidence = event.results[i][0].confidence;
         }
         else {
           debug('adding "' + event.results[i][0].transcript +
                 '" to partial transcript');
           partialTranscript += event.results[i][0].transcript;
+          // XXXAus: In theory, partial transcripts shouldn't be used as their
+          //         confidence will always be lower than a final transcript.
+          //         We should ask the user to repeat what they want when all
+          //         we have is a partial transcript with 'low' confidence.
           confidence = event.results[i][0].confidence;
         }
       }
@@ -248,16 +254,35 @@ var VoiceCommandsInterface = {
 
       // XXXAus: Ugh. This is really crappy error handling.
       if (usableTranscript == "ERROR") {
-        this.listeningAnimation
-        this.say('I\'m sorry, I didn\'t understand. Please try again.', true);
-        return;
+        this.say('I\'m sorry, I didn\'t understand.');
       }
       else if (usableTranscript.length) {
         // If we have a usable transcript we will parse it for a valid action.
         this.updateStatusText(usableTranscript);
-        CommandInterpreter.doThyBidding(transcript || partialTranscript);
+        CommandInterpreter.doThyBidding(usableTranscript);
       }
     }.bind(this));
+  }
+};
+
+/**
+ * The CommandRegistrar is responsible for keeping track of the registered
+ * commands as well as enable looking up a command based on a transcript.
+ *
+ * XXXAus: It should also be used by the VoiceCommandsInterface to generate
+ *         the grammar list.
+ *
+ * XXXAus: As you can see, this isn't in use yet.
+ */
+var CommandRegistrar = {
+  _commands: [],
+
+  registerCommand: function(aCommandHandler) {
+
+  },
+
+  findCommandFromTranscript: function(aTranscript) {
+
   }
 };
 
