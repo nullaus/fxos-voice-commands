@@ -136,3 +136,6 @@
   height: 6rem;
 }
 
+#microphone-button.disabled {
+  opacity: 0.6;
+}

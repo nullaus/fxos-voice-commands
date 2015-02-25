@@ -40,11 +40,7 @@ var VoiceCommandsInterface = {
     this.createSpeechRecognition();
 
     this.speakButton = document.getElementById('microphone-button');
-    this.speakButton.onclick = (function() {
-      // XXXAus: Should load this via l10n.
-      this.updateStatusIcon('fxos-logo');
-      this.say('How may I help you?', true);
-    }).bind(this);
+    this.speakButton.onclick = this.handleSpeakButtonClick.bind(this);
 
     this.statusText = document.getElementById('status-text');
     this.statusIcon = document.getElementById('status-icon');
@@ -97,8 +93,14 @@ var VoiceCommandsInterface = {
 
     // Super basic handling for now.
     navigator.mozSetMessageHandler('activity', (function(activityRequest) {
-      this.speakButton.click();
+      this.handleSpeakButtonClick();
     }.bind(this)));
+  },
+
+  handleSpeakButtonClick: function() {
+    this.updateStatusIcon('fxos-logo');
+    // XXXAus: Should load this via l10n.
+    this.say('How may I help you?', true);
   },
 
   /**
@@ -139,7 +141,7 @@ var VoiceCommandsInterface = {
   },
 
   /**
-   *
+   * Sets the listening animation state and updates other elements' visibility.
    */
   setListeningAnimationState: function(aShow) {
     var show = aShow || false
@@ -155,6 +157,16 @@ var VoiceCommandsInterface = {
   },
 
   /**
+   * Sets the speak button state (enables or disables).
+   */
+  setSpeakButtonState: function(aDisabled) {
+    var disabled = aDisabled || false;
+    this.speakButton.classList.toggle('disabled');
+    this.speakButton.onclick =
+      disabled ? null : this.handleSpeakButtonClick.bind(this);
+  },
+
+  /**
    * Say a sentence to the user and optionally wait for a response.
    *
    * @param aSentence The sentence to be spoken.
@@ -166,6 +178,8 @@ var VoiceCommandsInterface = {
           '", aIsWaitingForCommandResponse = "' + aIsWaitingForCommandResponse +
           '"');
 
+    // Disable the speak button until text-to-speech is inactive.
+    this.setSpeakButtonState(true);
     this.updateStatusText(aSentence);
 
     // XXXAus: Language should be detected based on system language.
@@ -187,9 +201,14 @@ var VoiceCommandsInterface = {
       var e = document.createElement('audio');
       e.src = url;
       e.setAttribute('autoplay', 'true');
-      if (aIsWaitingForCommandResponse) {
-        e.addEventListener('ended', this.listen.bind(this));
-      }
+      e.addEventListener('ended', (function() {
+        // Enable the speak button.
+        this.setSpeakButtonState(false);
+        // If we're waiting for a command, start listening.
+        if (aIsWaitingForCommandResponse) {
+          this.listen();
+        }
+      }).bind(this));
     }.bind(this),
     100);
   },
