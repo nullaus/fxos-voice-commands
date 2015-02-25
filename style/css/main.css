@@ -74,18 +74,21 @@
 
 #views {
   width: 100%;
-  height: 100%;
+  height: 26rem;
   overflow: hidden;
 }
 
 #status-icon {
+  position: relative;
+  top: 0.6rem;
   height: 10rem;
+  opacity: 0.3;
 }
 #status-icon.battery {
   background: url('../images/battery.png') center no-repeat;
 }
 #status-icon.fxos-logo {
-  background: url('../images/ff.png') center no-repeat;
+  background: url('../images/fxos-logo.png') center no-repeat;
 }
 #status-icon.messages {
   background: url('../images/mail.png') center no-repeat;
@@ -104,17 +107,32 @@
 }
 
 #status-text {
+  position: relative;
+  top: 2rem;
   height: 7rem;
   font-style: italic;
   font-size: 1.6rem;
   text-align: center;
 }
 
+#commands-list {
+  position: relative;
+  top: -18rem;
+  font-size: 1.2rem;
+  font-weight: 100;
+  text-align: center;
+}
+
+#commands-list ul {
+  list-style: none;
+  padding: 0;
+}
+
 #microphone-button {
+  position: relative;
+  top: -10rem;
   background: url('../images/mic.png') center no-repeat;
   width: 100%;
-  height: 9rem;
-  margin: 0;
-  padding: 0;
+  height: 6rem;
 }
 

@@ -43,11 +43,12 @@ var VoiceCommandsInterface = {
     this.speakButton.onclick = (function() {
       // XXXAus: Should load this via l10n.
       this.updateStatusIcon('fxos-logo');
-      this.say('I\'m listening.', true);
+      this.say('How may I help you?', true);
     }).bind(this);
 
     this.statusText = document.getElementById('status-text');
     this.statusIcon = document.getElementById('status-icon');
+    this.commandsList = document.getElementById('commands-list');
     this.listeningAnimation = document.getElementById('listening-animation');
 
     this.registerActivityHandler();
@@ -76,10 +77,10 @@ var VoiceCommandsInterface = {
     //         information related to the action.
     var grammar = '#JSGF v1.0; grammar fxosVoiceCommands; ' +
                   'public <simple> = ' +
-                  'call me | ' +
-                  'dial me | ' +
+                  'call home | ' +
+                  'dial home | ' +
                   'check my messages | ' +
-                  'text me | ' +
+                  'text david | ' +
                   'whats my battery level | ' +
                   'open my calendar | ' +
                   'open my email | ' +
@@ -141,12 +142,16 @@ var VoiceCommandsInterface = {
    *
    */
   setListeningAnimationState: function(aShow) {
-    var show = aShow || false;
+    var show = aShow || false
+    var visibility = show ? 'hidden' : 'visible';
+    var display = show ? 'block' : 'none';
+
     // XXXAus: not too fond of this hiding the status icon and text but
     //         that's just the easiest right now.
-    this.statusIcon.style.visibility = aShow ? 'hidden' : 'visible';
-    this.statusText.style.visibility = aShow ? 'hidden' : 'visible';
-    this.listeningAnimation.style.display = aShow ? 'block' : 'none';
+    this.statusIcon.style.visibility = visibility;
+    this.statusText.style.visibility = visibility;
+    this.commandsList.style.visibility = visibility;
+    this.listeningAnimation.style.display = display;
   },
 
   /**
@@ -200,7 +205,7 @@ var VoiceCommandsInterface = {
       return;
     }
 
-    this.updateStatusText('I\'m listening');
+    this.updateStatusText('How may I help you?');
     this.setListeningAnimationState(true);
 
     debug('VoiceCommandsInterface:: listen -- Listening for a command');
@@ -316,7 +321,8 @@ var CommandInterpreter = {
       return;
     }
 
-    if (aTranscript.indexOf('messages') > -1) {
+    if (aTranscript.indexOf('check') > -1 &&
+        aTranscript.indexOf('messages') > -1) {
       var emails = MessageChecker.getUnseenEmailCount();
       var voicemails = MessageChecker.getUnseenVoicemailCount();
 
@@ -329,7 +335,7 @@ var CommandInterpreter = {
     }
 
     if (aTranscript.indexOf('text') > -1) {
-      ContactsSearch.findContact('Aus').then(
+      ContactsSearch.findContact('David').then(
         function(contact) {
           VoiceCommandsInterface.updateStatusIcon('text');
           SMS.send(contact.tel[0].value);
@@ -359,7 +365,7 @@ var CommandInterpreter = {
     if (aTranscript.indexOf('call') > -1 ||
         aTranscript.indexOf('dial') > -1) {
 
-      ContactsSearch.findContact('Aus').then(
+      ContactsSearch.findContact('Home').then(
         function(contact) {
           Dialer.dial(contact.tel[0].value);
         },
@@ -630,8 +636,9 @@ var MessageChecker = {
   },
 
   getUnseenEmailCount: function() {
-    // XXXAus: Needs fairly intrusive changes to the mail app.
-    return 0;
+    // XXXAus: Needs fairly intrusive changes to the mail app. Hardcoded
+    //         for demonstration purposes only!
+    return 3;
   },
 
   getUnseenVoicemailCount: function() {
