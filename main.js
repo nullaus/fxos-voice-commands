@@ -182,26 +182,16 @@ var VoiceCommandsInterface = {
     this.setSpeakButtonState(true);
     this.updateStatusText(aSentence);
 
-    // XXXAus: Language should be detected based on system language.
-    var language = 'en';
-    // XXXAus: Speech synthesis should be a local service.
-    var baseURL = 'http://speechan.cloudapp.net/weblayer/synth.ashx?lng=' +
-                  language +
-                  '&msg=';
-
-    // XXXAus: Using a url to an external service is only a temporary solution.
-    var url =  baseURL + aSentence;
-
     if (aIsWaitingForCommandResponse) {
       this._interpretingCommand = true;
     }
 
     // Wait an extra 100ms for the audio output to stabilize off.
     setTimeout(function() {
-      var e = document.createElement('audio');
-      e.src = url;
-      e.setAttribute('autoplay', 'true');
-      e.addEventListener('ended', (function() {
+      var speechSynthesisUtterance = new SpeechSynthesisUtterance(aSentence);
+      // XXX: Language should be detected based on system language.
+      speechSynthesisUtterance.lang = 'en';
+      speechSynthesisUtterance.addEventListener('end', (function() {
         // Enable the speak button.
         this.setSpeakButtonState(false);
         // If we're waiting for a command, start listening.
@@ -209,6 +199,7 @@ var VoiceCommandsInterface = {
           this.listen();
         }
       }).bind(this));
+      speechSynthesis.speak(speechSynthesisUtterance);
     }.bind(this),
     100);
   },
